@@ -154,16 +154,31 @@ process_file() {
 		OUTPUT_ACODEC="$DEFAULT_ACODEC"
 	fi
 	echo "- audio: $INPUT_ACODEC -> $OUTPUT_ACODEC"
+	
+	# test number of audio channels
+	INPUT_CHANNELS=`mediainfo --Inform="Audio;%Channel(s)_Original%\n" "$FILENAME" |head -n1`
+	if [ -z $INPUT_CHANNELS ]; then
+		INPUT_CHANNELS=`mediainfo --Inform="Audio;%Channels%\n" "$FILENAME" |head -n1`
+	fi
+	
+	if (( $INPUT_CHANNELS==2 )); then
+		OUTPUT_CHANNELS="copy"
+	else
+		OUTPUT_CHANNELS="2"
+	fi
+	echo "- channels: $INPUT_CHANNELS -> $OUTPUT_CHANNELS"
 
-	if [ "$OUTPUT_VCODEC" = "copy" ] && [ "$OUTPUT_ACODEC" = "copy" ] && [ "$OUTPUT_GFORMAT" = "ok" ]; then
+	if [ "$OUTPUT_VCODEC" = "copy" ] && [ "$OUTPUT_ACODEC" = "copy" ] && [ "$OUTPUT_CHANNEL" = "copy" ] && [ "$OUTPUT_GFORMAT" = "ok" ]; then
 		echo "- file should be playable by Chromecast!"
 		mark_as_good "$FILENAME"
 	else
 		echo "- video length: `mediainfo --Inform="General;%Duration/String3%" "$FILENAME" 2> /dev/null`"
 		if [ "$OUTPUT_GFORMAT" = "ok" ]; then
 			OUTPUT_GFORMAT=$EXTENSION
-		fi
-		$FFMPEG -loglevel error -stats -i "$FILENAME" -map 0 -scodec copy -vcodec "$OUTPUT_VCODEC" -acodec "$OUTPUT_ACODEC" "$FILENAME.$OUTPUT_GFORMAT" && on_success "$FILENAME" || on_failure "$FILENAME"
+		fi	
+		
+		$FFMPEG -loglevel error -stats -i "$FILENAME" -scodec copy -map 0:v -map 0:a -map 0:a -c:v copy -vcodec "$OUTPUT_VCODEC" -c:a:0 "$OUTPUT_ACODEC" -ac 2 -c:a:1 copy "$FILENAME.$OUTPUT_GFORMAT" && on_success "$FILENAME" || on_failure "$FILENAME"
+
 		echo ""
 	fi
 }
