@@ -1,7 +1,7 @@
 chromecastize
 =============
 
-*Fork of https://github.com/petrkotek/chromecastize. The only difference is, that this also checks video streams Reference Frames and corrects them for Chromecast compatibility if nescessary.*
+*Fork of https://github.com/petrkotek/chromecastize. The only difference is, that this also checks video streams Reference Frames and corrects them for Chromecast compatibility if necessary.*
 
 
 Simple bash script to convert video files into Google Chromecast supported format.
