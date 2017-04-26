@@ -137,16 +137,23 @@ process_file() {
 	fi
 	echo "- general: $INPUT_GFORMAT -> $OUTPUT_GFORMAT"
 
-	# Get input file refframes 
-	INPUT_REFFRAMES=`mediainfo --Inform="Video;%Format_Settings_RefFrames%\n" "$FILENAME" |head -n1`
-	echo $INPUT_REFFRAMES
+	# Test refframes 
+	INPUT_REFS=`mediainfo --Inform="Video;%Format_Settings_RefFrames%\n" "$FILENAME" |head -n1`
+	if  (( "$INPUT_REFS" < 5 )); then
+		OUTPUT_REFS="$INPUT_REFFRAMES"		
+	else
+		OUTPUT_REFS="4"
+	fi
+	echo "- Reference frames: $INPUT_REFFRAMES -> $OUTPUT_REFS"
+
+	echo $OUTPUT_REFS
 	
-	# test video codec and refframes
+	# test video codec 
 	INPUT_VCODEC=`mediainfo --Inform="Video;%Format%\n" "$FILENAME" 2> /dev/null | head -n1`
-	if is_supported_vcodec "$INPUT_VCODEC" && (( $OUTPUT_REFFRAMES < 5 )); then
+	if is_supported_vcodec "$INPUT_VCODEC" && [ "$OUTPUT_REFS" == "$INPUT_REFS" ]; then
 		OUTPUT_VCODEC="copy"
 	else
-		OUTPUT_VCODEC="$DEFAULT_VCODEC -refs 4"		
+		OUTPUT_VCODEC="$DEFAULT_VCODEC"	
 	fi
 	echo "- video: $INPUT_VCODEC -> $OUTPUT_VCODEC"
 
@@ -159,7 +166,7 @@ process_file() {
 	fi
 	echo "- audio: $INPUT_ACODEC -> $OUTPUT_ACODEC"
 	
-	if [ "$OUTPUT_VCODEC" = "copy" ] && [ "$OUTPUT_ACODEC" = "copy" ] && [ "$OUTPUT_REFFRAMES" = "copy" ] && [ "$OUTPUT_GFORMAT" = "ok" ]; then
+	if [ "$OUTPUT_VCODEC" = "copy" ] && [ "$OUTPUT_ACODEC" = "copy" ] && [ "$OUTPUT_REFS" == "$INPUT_REFS" ] && [ "$OUTPUT_GFORMAT" = "ok" ]; then
 		echo "- file should be playable by Chromecast!"
 		mark_as_good "$FILENAME"
 	else
@@ -168,8 +175,10 @@ process_file() {
 			OUTPUT_GFORMAT=$EXTENSION
 		fi	
 			
-		$FFMPEG -loglevel error -stats -i "$FILENAME" -map 0 -scodec copy -vcodec "$OUTPUT_VCODEC" -acodec "$OUTPUT_ACODEC" "$FILENAME.$OUTPUT_GFORMAT"  && on_success "$FILENAME" || on_failure "$FILENAME"
+		echo $FFMPEG -loglevel error -stats -i "$FILENAME" -map 0 -scodec copy -vcodec "$OUTPUT_VCODEC" -refs "$OUTPUT_REFS" -acodec "$OUTPUT_ACODEC" "$FILENAME.$OUTPUT_GFORMAT"
 		
+
+		$FFMPEG -loglevel error -stats -i "$FILENAME" -map 0 -scodec copy -vcodec "$OUTPUT_VCODEC" -refs $OUTPUT_REFS -acodec "$OUTPUT_ACODEC" "$FILENAME.$OUTPUT_GFORMAT"  && on_success "$FILENAME" || on_failure "$FILENAME"
 		echo ""
 	fi
 }

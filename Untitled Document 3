@@ -1,2 +1,0 @@
-avconv -i The\ Grand\ Budapest\ Hotel\ \(2014\)\ 1080p\ 5.1ch\ BluRay\ RIP\ -\ \[GeekRG\].mp4.mp4 -map 0:2 -ac 2 output.mkv
-
