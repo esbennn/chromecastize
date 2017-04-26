@@ -1,10 +1,10 @@
 chromecastize
 =============
+
+*Fork of https://github.com/petrkotek/chromecastize. The only difference is, that this also checks video streams Reference Frames and corrects them for Chromecast compatibility if nescessary.*
+
+
 Simple bash script to convert video files into Google Chromecast supported format.
-
-Fork of https://github.com/petrkotek/chromecastize. The only difference is, that this forces 2 channel audio.
-
-Created, as my Chromecast will not recieve anything but stereo when connected to my stereo tv, forcing transcoding on my plex server, which i like to avoid, as it's a Raspberry Pi (not too powerful)
 
 Script identifies video and audio format of given file (using `mediainfo`) and converts it if necessary (using `ffmpeg`).
 
