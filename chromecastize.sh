@@ -139,15 +139,17 @@ process_file() {
 
 	# Test refframes 
 	INPUT_REFS=`mediainfo --Inform="Video;%Format_Settings_RefFrames%\n" "$FILENAME" |head -n1`
-	if  (( "$INPUT_REFS" < 5 )); then
-		OUTPUT_REFS="$INPUT_REFFRAMES"		
+	if [ ! -z "$INPUT_REFS" ]; then
+		if (( "$INPUT_REFS" < 5 )); then
+			OUTPUT_REFS="$INPUT_REFFRAMES"		
+		else
+			OUTPUT_REFS="4"
+		fi
 	else
 		OUTPUT_REFS="4"
 	fi
 	echo "- Reference frames: $INPUT_REFFRAMES -> $OUTPUT_REFS"
 
-	echo $OUTPUT_REFS
-	
 	# test video codec 
 	INPUT_VCODEC=`mediainfo --Inform="Video;%Format%\n" "$FILENAME" 2> /dev/null | head -n1`
 	if is_supported_vcodec "$INPUT_VCODEC" && [ "$OUTPUT_REFS" == "$INPUT_REFS" ]; then
@@ -175,7 +177,7 @@ process_file() {
 			OUTPUT_GFORMAT=$EXTENSION
 		fi	
 			
-		echo $FFMPEG -loglevel error -stats -i "$FILENAME" -map 0 -scodec copy -vcodec "$OUTPUT_VCODEC" -refs "$OUTPUT_REFS" -acodec "$OUTPUT_ACODEC" "$FILENAME.$OUTPUT_GFORMAT"
+		#echo $FFMPEG -loglevel error -stats -i "$FILENAME" -map 0 -scodec copy -vcodec "$OUTPUT_VCODEC" -refs "$OUTPUT_REFS" -acodec "$OUTPUT_ACODEC" "$FILENAME.$OUTPUT_GFORMAT"
 		
 
 		$FFMPEG -loglevel error -stats -i "$FILENAME" -map 0 -scodec copy -vcodec "$OUTPUT_VCODEC" -refs $OUTPUT_REFS -acodec "$OUTPUT_ACODEC" "$FILENAME.$OUTPUT_GFORMAT"  && on_success "$FILENAME" || on_failure "$FILENAME"
